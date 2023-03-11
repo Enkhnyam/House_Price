@@ -46,3 +46,37 @@ f, ax = plt.subplots(figsize=(16, 8))
 fig = sns.boxplot(x=var3, y="SalePrice", data=data)
 fig.axis(ymin=0, ymax=800000)
 plt.xticks(rotation=90)
+
+corrmat = train_data.corr()
+# plt.figure.Figure(figsize=(12, 9))
+sns.set_context('paper', font_scale=1.2)
+f, ax = plt.subplots(figsize=(12, 9))
+sns.heatmap(corrmat)
+
+k = 10
+cols = corrmat.nlargest(k, 'SalePrice')['SalePrice'].index
+cm = np.corrcoef(train_data[cols].values.T)
+sns.set(font_scale=1)
+hm = sns.heatmap(cm, cbar=True, annot=True, square=True, fmt='.3f', annot_kws={'size': 8}, yticklabels=cols.values, xticklabels=cols.values)
+plt.show()
+
+#scatterplot
+sns.set()
+cols = ['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']
+sns.pairplot(train_data[cols], height = 2.5)
+plt.show();
+
+#missing data
+total = train_data.isnull().sum().sort_values(ascending=False)
+percent = (train_data.isnull().sum()/train_data.isnull().count()).sort_values(ascending=False)
+missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
+# missing_data.head(20)
+total.head(20)
+
+# #dealing with missing data
+# train_data = train_data.drop((missing_data[missing_data['Total'] > 1]).index,1)
+train_data = train_data.drop(train_data.columns[train_data.apply(lambda col:col.isnull().sum()>1)], axis=1)
+train_data = train_data.drop(train_data.loc[train_data['Electrical'].isnull()].index) # lets also delete that one observation that was missing in Electrical
+train_data.isnull().sum().max() #just checking that there's no missing data missing...
+
+saleprice_scaled = StandardScaler().fit_transform(train_data['SalePrice'][:,np.newaxis])
